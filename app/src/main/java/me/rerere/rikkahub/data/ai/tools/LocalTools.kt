@@ -124,6 +124,14 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("ssh")
     data object Ssh : LocalToolOption()
+
+    /**
+     * 设备Shell工具. 开启后注册 device_shell/device_read_file/device_write_file/device_list_dir
+     * 工具, 直接使用app进程权限执行命令, 可访问手机全部文件系统, 不受proot沙箱限制.
+     */
+    @Serializable
+    @SerialName("device_shell")
+    data object DeviceShell : LocalToolOption()
 }
  
 class LocalTools(
@@ -625,6 +633,12 @@ class LocalTools(
             tools.add(me.rerere.rikkahub.data.ai.tools.local.sshUploadTool(context, sshHostRepository))
             tools.add(me.rerere.rikkahub.data.ai.tools.local.sshDownloadTool(context, sshHostRepository))
             tools.add(me.rerere.rikkahub.data.ai.tools.local.forgetSshHostKeyTool(context))
+        }
+        if (options.contains(LocalToolOption.DeviceShell)) {
+            tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceShellTool())
+            tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceFileReadTool())
+            tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceFileWriteTool())
+            tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceListDirTool())
         }
         return tools
     }
