@@ -132,6 +132,14 @@ sealed class LocalToolOption {
     @Serializable
     @SerialName("device_shell")
     data object DeviceShell : LocalToolOption()
+
+    /**
+     * AI自主决策主动消息时间. 开启后注册 set_next_proactive_time 工具,
+     * AI每次被唤醒后自己决定下次什么时候再来找用户.
+     */
+    @Serializable
+    @SerialName("proactive_self_schedule")
+    data object ProactiveSelfSchedule : LocalToolOption()
 }
  
 class LocalTools(
@@ -639,6 +647,9 @@ class LocalTools(
             tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceFileReadTool())
             tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceFileWriteTool())
             tools.add(me.rerere.rikkahub.data.ai.tools.local.deviceListDirTool())
+        }
+        if (options.contains(LocalToolOption.ProactiveSelfSchedule)) {
+            tools.add(me.rerere.rikkahub.data.ai.tools.local.setNextProactiveTimeTool(context))
         }
         return tools
     }
