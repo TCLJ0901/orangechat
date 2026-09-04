@@ -30,6 +30,10 @@ jobs:
           cd web-ui
           pnpm install
 
+      - name: Generate debug keystore
+        run: |
+          keytool -genkey -v -keystore app/debug.keystore             -storepass android -alias androiddebugkey -keypass android             -keyalg RSA -keysize 2048 -validity 10000             -dname "CN=Debug,OU=Debug,O=Debug,L=Debug,ST=Debug,C=US"
+
       - name: Gradle cache
         uses: actions/cache@v4
         with:
