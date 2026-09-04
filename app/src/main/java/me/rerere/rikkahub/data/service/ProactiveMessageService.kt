@@ -206,6 +206,45 @@ class ProactiveMessageService : KoinComponent {
             val serviceIntent = Intent(context, ProactiveMessageTriggerService::class.java)
             context.startForegroundService(serviceIntent)
         }
+
+        /**
+         * AI自主决策：设置下次主动消息的精确触发时间。
+         * 与scheduleNext不同，这里AI自己决定具体几点再来，不用随机间隔。
+         * @param delayMinutes 从现在起多少分钟后触发
+         */
+        fun scheduleAt(context: Context, delayMinutes: Int) {
+            val triggerTime = java.lang.System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(delayMinutes.toLong())
+            
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putLong(KEY_NEXT_TRIGGER_TIME, triggerTime)
+                .apply()
+
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(context, ProactiveMessageReceiver::class.java).apply {
+                action = ACTION_PROACTIVE_MESSAGE
+            }
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (alarmManager.canScheduleExactAlarms()) {
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+                } else {
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+                }
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+            }
+
+            Log.d(TAG, "AI scheduled next proactive message in $delayMinutes minutes, trigger at ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(triggerTime))}")
+        }
     }
 
     suspend fun buildProactiveContext(context: Context, settings: Settings): String {
