@@ -17,6 +17,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -120,10 +121,6 @@ import me.rerere.rikkahub.utils.openUrl
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.utils.splitIntoBubbleSegments
 import me.rerere.rikkahub.utils.urlDecode
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.hazeEffect
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.materials.HazeMaterials
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
  
@@ -755,19 +752,28 @@ private fun BubbleSurface(
     } else {
         val displaySettings = LocalDisplaySettings.current
         if (displaySettings.enableBlurEffect) {
-            // 毛玻璃气泡
-            val hazeState = remember { HazeState() }
-            Box(
+            // 毛玻璃风格气泡：半透明 + 细边框 + 柔和阴影
+            Surface(
                 modifier = Modifier
                     .animateContentSize()
-                    .clip(RoundedCornerShape(cornerRadius))
-                    .hazeEffect(
-                        state = hazeState,
-                        style = HazeMaterials.ultraThin(
-                            containerColor = color.copy(alpha = (bubbleAlpha * 0.6f).coerceIn(0f, 1f))
-                        )
-                    )
-                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+                    .then(
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                            Modifier.graphicsLayer {
+                                renderEffect = android.graphics.RenderEffect
+                                    .createBlurEffect(8f, 8f, android.graphics.Shader.TileMode.CLAMP)
+                                    .let { null } // 不对自身模糊，只是让背景透出来
+                            }
+                        } else Modifier
+                    ),
+                shape = RoundedCornerShape(cornerRadius),
+                color = color.copy(alpha = (bubbleAlpha * 0.45f).coerceIn(0.15f, 0.65f)),
+                border = androidx.compose.foundation.BorderStroke(
+                    0.5.dp,
+                    color.copy(alpha = 0.2f)
+                ),
+                shadowElevation = 0.dp,
+                tonalElevation = 0.dp,
+                onClick = onClick ?: {},
             ) {
                 Column(modifier = Modifier.padding(8.dp)) { content() }
             }
