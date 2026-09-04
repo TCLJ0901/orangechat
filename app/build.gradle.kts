@@ -16,7 +16,7 @@ android {
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "me.rerere.orangechat"
+        applicationId = "me.ciyuan.chuimou"
         minSdk = 26
         targetSdk = 37
         versionCode = 159
