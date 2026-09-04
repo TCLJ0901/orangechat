@@ -120,6 +120,10 @@ import me.rerere.rikkahub.utils.openUrl
 import coil3.compose.AsyncImage
 import me.rerere.rikkahub.utils.splitIntoBubbleSegments
 import me.rerere.rikkahub.utils.urlDecode
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.HazeMaterials
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
  
@@ -749,13 +753,33 @@ private fun BubbleSurface(
             Column(modifier = Modifier.padding(8.dp)) { content() }
         }
     } else {
-        Surface(
-            modifier = Modifier.animateContentSize(),
-            shape = RoundedCornerShape(cornerRadius),
-            color = color.copy(alpha = bubbleAlpha),
-            onClick = onClick ?: {},
-        ) {
-            Column(modifier = Modifier.padding(8.dp)) { content() }
+        val displaySettings = LocalDisplaySettings.current
+        if (displaySettings.enableBlurEffect) {
+            // 毛玻璃气泡
+            val hazeState = remember { HazeState() }
+            Box(
+                modifier = Modifier
+                    .animateContentSize()
+                    .clip(RoundedCornerShape(cornerRadius))
+                    .hazeEffect(
+                        state = hazeState,
+                        style = HazeMaterials.ultraThin(
+                            containerColor = color.copy(alpha = (bubbleAlpha * 0.6f).coerceIn(0f, 1f))
+                        )
+                    )
+                    .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
+            ) {
+                Column(modifier = Modifier.padding(8.dp)) { content() }
+            }
+        } else {
+            Surface(
+                modifier = Modifier.animateContentSize(),
+                shape = RoundedCornerShape(cornerRadius),
+                color = color.copy(alpha = bubbleAlpha),
+                onClick = onClick ?: {},
+            ) {
+                Column(modifier = Modifier.padding(8.dp)) { content() }
+            }
         }
     }
 }
