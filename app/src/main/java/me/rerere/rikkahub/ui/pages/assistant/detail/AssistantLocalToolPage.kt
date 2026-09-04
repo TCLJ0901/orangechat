@@ -253,6 +253,23 @@ private fun AssistantLocalToolContent(
                     )
                 }
             )
+            item(
+                headlineContent = { Text("设备Shell") },
+                supportingContent = { Text("直接在设备上执行命令、读写文件，不受沙箱限制。需要存储权限") },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.DeviceShell),
+                        onCheckedChange = {
+                            val newLocalTools = if (it) {
+                                assistant.localTools + LocalToolOption.DeviceShell
+                            } else {
+                                assistant.localTools - LocalToolOption.DeviceShell
+                            }
+                            onUpdate(assistant.copy(localTools = newLocalTools))
+                        }
+                    )
+                }
+            )
         }
     }
 }
