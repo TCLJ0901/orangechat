@@ -270,6 +270,23 @@ private fun AssistantLocalToolContent(
                     )
                 }
             )
+            item(
+                headlineContent = { Text("主动消息自主决策") },
+                supportingContent = { Text("AI自己决定下次什么时候找你，不用固定间隔") },
+                trailingContent = {
+                    Switch(
+                        checked = assistant.localTools.contains(LocalToolOption.ProactiveSelfSchedule),
+                        onCheckedChange = {
+                            val newLocalTools = if (it) {
+                                assistant.localTools + LocalToolOption.ProactiveSelfSchedule
+                            } else {
+                                assistant.localTools - LocalToolOption.ProactiveSelfSchedule
+                            }
+                            onUpdate(assistant.copy(localTools = newLocalTools))
+                        }
+                    )
+                }
+            )
         }
     }
 }
