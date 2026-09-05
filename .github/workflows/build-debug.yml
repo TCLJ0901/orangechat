@@ -30,9 +30,20 @@ jobs:
           cd web-ui
           pnpm install
 
+      - name: Cache debug keystore
+        id: keystore-cache
+        uses: actions/cache@v4
+        with:
+          path: app/debug.keystore
+          key: chuimou-debug-keystore-v1
+
       - name: Generate debug keystore
+        if: steps.keystore-cache.outputs.cache-hit != 'true'
         run: |
-          keytool -genkey -v -keystore app/debug.keystore             -storepass android -alias androiddebugkey -keypass android             -keyalg RSA -keysize 2048 -validity 10000             -dname "CN=Debug,OU=Debug,O=Debug,L=Debug,ST=Debug,C=US"
+          keytool -genkey -v -keystore app/debug.keystore \
+            -storepass android -alias androiddebugkey -keypass android \
+            -keyalg RSA -keysize 2048 -validity 36500 \
+            -dname "CN=ChuiMou,OU=ChuiMou,O=ChuiMou,L=ChuiMou,ST=ChuiMou,C=CN"
 
       - name: Gradle cache
         uses: actions/cache@v4
