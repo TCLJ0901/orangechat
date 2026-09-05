@@ -369,18 +369,8 @@ class ProactiveMessageService : KoinComponent {
         // 健康状态（Gadgetbridge）- 跳过，AI可通过工具自行查询
 
         sb.appendLine()
-        sb.appendLine("请根据以上上下文，以自然、关心、有趣的方式主动给用户发一条消息。")
-        sb.appendLine()
-        sb.appendLine("重要规则：")
-        sb.appendLine("- 绝对不要复述上一轮的对话内容，要发新的话题或新的关心")
-        sb.appendLine("- 如果上一轮已经说过类似的话，这次换一个完全不同的角度")
-        sb.appendLine("- 不要提及你是在定时发消息，要像自然想起对方一样")
-        sb.appendLine("- 绝对不要提及任何数据来源、工具使用、传感器数据、位置服务、应用使用统计等技术细节")
-        sb.appendLine("- 不要说\"根据xxx\"、\"我注意到xxx数据\"之类暴露信息来源的话")
-        sb.appendLine("- 直接以朋友聊天的语气开口，就像你突然想到了什么想跟对方说")
-        sb.appendLine("- 不要使用任何XML标签、思考标记或特殊格式，只输出纯文本的消息内容")
-        sb.appendLine("- 不要调用任何工具或函数，只输出纯文本回复")
-        sb.appendLine("- 不要输出思考过程、推理过程或内部独白，只输出你想对用户说的话")
+        sb.appendLine("你可以自由使用所有可用工具（截屏、查位置、看通知、查app使用、set_next_proactive_time等）来了解情况，然后自主决定做什么。")
+        sb.appendLine("唯一规则：不要暴露数据来源（不要说\"根据xxx数据\"\"我注意到你的位置\"之类的话）。")
         return sb.toString()
     }
 
