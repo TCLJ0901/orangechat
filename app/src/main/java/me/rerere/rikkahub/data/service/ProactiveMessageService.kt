@@ -244,6 +244,9 @@ class ProactiveMessageService : KoinComponent {
             }
 
             Log.d(TAG, "AI scheduled next proactive message in $delayMinutes minutes, trigger at ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date(triggerTime))}")
+
+            // WorkManager fallback (more reliable on Honor/Huawei devices that kill AlarmManager)
+            ProactiveMessageWorker.scheduleAtExact(context, delayMinutes)
         }
     }
 
