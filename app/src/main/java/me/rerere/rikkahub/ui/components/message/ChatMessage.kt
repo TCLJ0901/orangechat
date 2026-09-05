@@ -752,22 +752,12 @@ private fun BubbleSurface(
     } else {
         val displaySettings = LocalDisplaySettings.current
         if (displaySettings.enableBlurEffect) {
-            // 毛玻璃风格气泡：半透明 + 细边框 + 柔和阴影
+            // 毛玻璃风格气泡：半透明 + 细边框
             Surface(
-                modifier = Modifier
-                    .animateContentSize()
-                    .then(
-                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
-                            Modifier.graphicsLayer {
-                                renderEffect = android.graphics.RenderEffect
-                                    .createBlurEffect(8f, 8f, android.graphics.Shader.TileMode.CLAMP)
-                                    .let { null } // 不对自身模糊，只是让背景透出来
-                            }
-                        } else Modifier
-                    ),
+                modifier = Modifier.animateContentSize(),
                 shape = RoundedCornerShape(cornerRadius),
                 color = color.copy(alpha = (bubbleAlpha * 0.45f).coerceIn(0.15f, 0.65f)),
-                border = androidx.compose.foundation.BorderStroke(
+                border = BorderStroke(
                     0.5.dp,
                     color.copy(alpha = 0.2f)
                 ),
