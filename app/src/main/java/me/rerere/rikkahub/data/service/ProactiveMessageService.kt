@@ -440,7 +440,7 @@ class ProactiveMessageTriggerService : android.app.Service(), KoinComponent {
 
     companion object {
         private const val TAG = "ProactiveMessageTrigger"
-        private const val MAX_TOOL_STEPS = 5 // 主动消息最大工具调用步数
+        private const val MAX_TOOL_STEPS = 10 // 主动消息最大工具调用步数
         // 外部触发（网关轮询）时跳过内部 minInterval 去重
         const val EXTRA_FORCE_TRIGGER = "force_trigger"
         // 激进模式设备事件上下文（由 DeviceEventAiTriggerService 传入）
@@ -913,7 +913,6 @@ class ProactiveMessageTriggerService : android.app.Service(), KoinComponent {
                 appendLine("## ⚠️ 当前触发原因：用户手机动向（设备事件触发）")
                 appendLine("你是因为检测到用户的手机操作动向（切换应用/亮屏锁屏/回桌面）而被触发的。")
                 appendLine("请特别注意：这是设备事件触发，不是定时主动消息。根据用户的手机操作动向来决定是否发消息。")
-                appendLine("绝对不要复述上一轮的对话内容，要发新的话题或新的关心。")
                 appendLine("请根据用户的动向，自然地决定是否主动发一条消息。距离用户上次回复已过去 $idleMinutes 分钟。")
                 appendLine("如果你觉得现在没什么好说的，或者没什么有趣的话题，请只回复 [PASS] 即可。")
                 appendLine("[JUMP] 标记不会展示给用户，仅用于触发屏幕跳转。")
@@ -929,7 +928,6 @@ class ProactiveMessageTriggerService : android.app.Service(), KoinComponent {
                 appendLine("## 主动消息触发（定时触发）")
                 appendLine("距离用户上次回复已过去 $idleMinutes 分钟。")
                 appendLine("这是定时触发的主动消息，不是设备事件触发。")
-                appendLine("绝对不要复述上一轮的对话内容，要发新的话题或新的关心。")
                 appendLine("如果你觉得现在没什么好说的，或者没什么有趣的话题，请只回复 [PASS] 即可。")
                 appendLine("[JUMP] 标记不会展示给用户，仅用于触发屏幕跳转。")
                 // 注入完整上下文（定位、前台app、app使用、通知、电量、健康等）
