@@ -70,6 +70,24 @@ class ProactiveMessageWorker(
             WorkManager.getInstance(context).cancelUniqueWork(UNIQUE_WORK_NAME)
             Log.d(TAG, "Cancelled WorkManager proactive message")
         }
+        /**
+         * AI自主决策：用WorkManager作为AlarmManager的备用。
+         * 荣耀/华为等国产ROM会积极杀AlarmManager闹钟，WorkManager存活率更高。
+         */
+        fun scheduleAtExact(context: Context, delayMinutes: Int) {
+            val workRequest = OneTimeWorkRequestBuilder<ProactiveMessageWorker>()
+                .setInitialDelay(delayMinutes.toLong(), TimeUnit.MINUTES)
+                .build()
+
+            WorkManager.getInstance(context)
+                .enqueueUniqueWork(
+                    UNIQUE_WORK_NAME,
+                    ExistingWorkPolicy.REPLACE,
+                    workRequest
+                )
+
+            Log.d(TAG, "AI scheduled WorkManager fallback in $delayMinutes minutes")
+        }
 
         /**
          * Check if exact alarm permission is granted (Android 12+)
