@@ -1724,17 +1724,26 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         messageId: Uuid,
         failIfMissing: Boolean = true,
     ) {
-        val currentConversation = getConversationFlow(conversationId).value
-        val updatedConversation = buildConversationAfterMessageDelete(currentConversation, messageId)
+        val session = getOrCreateSession(conversationId)
+        session.saveMutex.withLock {
+            // 锁内优先从数据库读最新状态:
+            // 1) 防止 session 刚重建时内存态落后于数据库(删除了旧内存里的旧结构, 写库却写不进新状态);
+            // 2) 防止与其他持锁写流程(saveMessage/regenerate/proactive append)发生
+            //    read-modify-write 竞态, 导致删除结果被旧快照覆盖写回
+            //    (表现: UI显示已删除, 重启后消息复活)
+            val currentConversation = conversationRepo.getConversationById(conversationId)
+                ?: session.state.value
+            val updatedConversation = buildConversationAfterMessageDelete(currentConversation, messageId)
 
-        if (updatedConversation == null) {
-            if (failIfMissing) {
-                throw NotFoundException("Message not found")
+            if (updatedConversation == null) {
+                if (failIfMissing) {
+                    throw NotFoundException("Message not found")
+                }
+                return
             }
-            return
-        }
 
-        saveConversation(conversationId, updatedConversation)
+            saveConversation(conversationId, updatedConversation)
+        }
     }
 
     suspend fun deleteMessage(
@@ -1742,6 +1751,23 @@ addAll(localTools.getTools(assistant.localTools, me.rerere.rikkahub.data.ai.tool
         message: UIMessage,
     ) {
         deleteMessage(conversationId, message.id, failIfMissing = false)
+    }
+
+    /**
+     * 异步删除消息, 挂在 AppScope 上并持有会话引用, 不受 ChatVM 的 viewModelScope 生命周期影响.
+     *
+     * 之前 ChatVM 里用 viewModelScope.launch 跑删除: 用户删除后立刻退出页面/切后台被杀时,
+     * 协程被取消, 写库事务中途被砍 —— 内存已更新(UI显示删掉了), 数据库还是旧数据,
+     * 重启后消息复活. 改为挂 AppScope + 会话引用, 保证写库一定完成.
+     */
+    fun deleteMessageAsync(conversationId: Uuid, message: UIMessage) {
+        launchWithConversationReference(conversationId) {
+            try {
+                deleteMessage(conversationId, message.id, failIfMissing = false)
+            } catch (e: Exception) {
+                Log.e(TAG, "deleteMessageAsync failed, conversationId=$conversationId", e)
+            }
+        }
     }
 
     private fun buildConversationAfterMessageDelete(
