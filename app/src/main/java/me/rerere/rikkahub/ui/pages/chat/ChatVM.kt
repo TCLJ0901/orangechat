@@ -209,10 +209,9 @@ class ChatVM(
     }
 
     fun deleteMessage(message: UIMessage) {
-        viewModelScope.launch {
-            chatService.deleteMessage(_conversationId, message)
-        }
+        chatService.deleteMessageAsync(_conversationId, message)
     }
+
 
     fun showDeleteBlockedWhileGeneratingError() {
         chatService.addError(
