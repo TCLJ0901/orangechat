@@ -155,6 +155,8 @@ fun ImportExportTab(
                             // 清理临时文件
                             tempFile.delete()
 
+                        }
+
                         "context" -> {
                             // 上下文导入（换窗口迁移）: 处理json文件
                             val tempFile =
