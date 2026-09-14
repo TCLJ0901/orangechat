@@ -154,6 +154,20 @@ fun ImportExportTab(
 
                             // 清理临时文件
                             tempFile.delete()
+
+                        "context" -> {
+                            // 上下文导入（换窗口迁移）: 处理json文件
+                            val tempFile =
+                                File(context.cacheDir, "temp_context_${System.currentTimeMillis()}.json")
+                            context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+                                FileOutputStream(tempFile).use { outputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
+                            val json = tempFile.readText()
+                            vm.importContext(json)
+                            tempFile.delete()
+                        }
                         }
                     }
 
@@ -162,6 +176,7 @@ fun ImportExportTab(
                         type = ToastType.Success
                     )
                     onShowRestartDialog()
+                    if (importType != "context") onShowRestartDialog()
                 }.onFailure { e ->
                     e.printStackTrace()
                     toaster.show(
@@ -279,6 +294,36 @@ fun ImportExportTab(
                     supportingContent = { Text(stringResource(R.string.backup_page_import_cherry_studio_desc)) },
                     leadingContent = {
                         if (isRestoring && importType == "cherry") {
+                            CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
+                        } else {
+                            Icon(HugeIcons.FileImport, null)
+                        }
+                    },
+                )
+            }
+        }
+
+        stickyHeader {
+            StickyHeader {
+                Text("换窗口迁移")
+            }
+        }
+
+        item {
+            CardGroup {
+                item(
+                    onClick = if (!isRestoring) {
+                        {
+                            importType = "context"
+                            openDocumentLauncher.launch(arrayOf("application/json"))
+                        }
+                    } else null,
+                    headlineContent = { Text("导入上下文为新会话") },
+                    supportingContent = {
+                        Text("选择之前导出的上下文JSON，导入为一个新会话，点开即可继续聊天")
+                    },
+                    leadingContent = {
+                        if (isRestoring && importType == "context") {
                             CircularWavyProgressIndicator(modifier = Modifier.size(24.dp))
                         } else {
                             Icon(HugeIcons.FileImport, null)
