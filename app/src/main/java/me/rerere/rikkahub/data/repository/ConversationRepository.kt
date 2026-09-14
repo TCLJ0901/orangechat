@@ -29,6 +29,8 @@ import me.rerere.rikkahub.data.db.dao.MessageNodeDAO
 import me.rerere.rikkahub.data.db.entity.ConversationEntity
 import me.rerere.rikkahub.data.db.entity.MessageNodeEntity
 import me.rerere.rikkahub.data.files.FilesManager
+import kotlinx.serialization.Serializable
+import me.rerere.rikkahub.data.datastore.DEFAULT_ASSISTANT_ID
 import me.rerere.rikkahub.data.model.Conversation
 import me.rerere.rikkahub.data.model.MessageNode
 import me.rerere.rikkahub.utils.JsonInstant
@@ -351,11 +353,14 @@ class ConversationRepository(
             messageFtsManager.deleteConversation(conversation.id.toString())
             database.withTransaction {
                 // message_node 会通过 CASCADE 自动删除
-                conversationDAO.delete(
-                    conversationToConversationEntity(conversation)
-                )
+            // 按主键删除，绕过 entity 转换（导入的旧数据可能触发转换内部 require 抛异常，导致删除静默失败）
+            conversationDAO.deleteById(conversation.id.toString())
             }
+        try {
             filesManager.deleteChatFiles(fullConversation.files)
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteChatFiles failed, conversationId=${conversation.id}", e)
+        }
         } catch (e: Exception) {
             Log.e(TAG, "deleteConversation failed, conversationId=${conversation.id}", e)
             throw e
@@ -386,6 +391,64 @@ class ConversationRepository(
         getConversationsOfAssistant(assistantId).first().forEach { conversation ->
             deleteConversation(conversation)
         }
+
+    /**
+     * 导出会话上下文（最近 maxMessages 条消息）为 JSON 字符串，用于跨窗口迁移。
+     * 从最新节点往回收集，保留完整节点结构（分支不可拆）。
+     */
+    suspend fun exportConversationContext(conversationId: Uuid, maxMessages: Int = 400): String {
+        val conversation = getConversationById(conversationId)
+            ?: throw IllegalArgumentException("Conversation not found: $conversationId")
+        var count = 0
+        val kept = mutableListOf<MessageNode>()
+        for (node in conversation.messageNodes.asReversed()) {
+            val size = node.messages.size
+            if (count + size > maxMessages && kept.isNotEmpty()) break
+            kept.add(0, node)
+            count += size
+            if (count >= maxMessages) break
+        }
+        val payload = ContextExportPayload(
+            version = 1,
+            title = conversation.title,
+            assistantId = conversation.assistantId.toString(),
+            customSystemPrompt = conversation.customSystemPrompt,
+            messageCount = count,
+            nodes = kept,
+        )
+        return JsonInstant.encodeToString(payload)
+    }
+
+    /**
+     * 导入上下文 JSON 为新会话（换窗口迁移用），返回新会话。
+     */
+    suspend fun importConversationContext(json: String): Conversation {
+        val payload = JsonInstant.decodeFromString<ContextExportPayload>(json)
+        if (payload.nodes.isEmpty()) throw IllegalArgumentException("上下文为空")
+        val cleanNodes = payload.nodes.mapNotNull { node ->
+            val cleaned = node.messages.filterNot { it.hasBase64Part() }
+            if (cleaned.isEmpty()) null
+            else node.copy(
+                messages = cleaned,
+                selectIndex = node.selectIndex.coerceIn(0, cleaned.lastIndex)
+            )
+        }
+        if (cleanNodes.isEmpty()) throw IllegalArgumentException("上下文中没有可导入的消息")
+        val assistantId = runCatching { Uuid.parse(payload.assistantId) }
+            .getOrElse { DEFAULT_ASSISTANT_ID }
+        val now = Instant.now()
+        val conversation = Conversation(
+            id = Uuid.random(),
+            assistantId = assistantId,
+            title = payload.title.ifBlank { "导入的上下文" },
+            messageNodes = cleanNodes,
+            createAt = now,
+            updateAt = now,
+            customSystemPrompt = payload.customSystemPrompt,
+        )
+        insertConversation(conversation)
+        return conversation
+    }
     }
 
     fun conversationToConversationEntity(conversation: Conversation): ConversationEntity {
@@ -618,4 +681,13 @@ data class LightConversationEntity(
 data class ConversationPageResult(
     val items: List<Conversation>,
     val nextOffset: Int?,
+)
+@Serializable
+data class ContextExportPayload(
+    val version: Int = 1,
+    val title: String = "",
+    val assistantId: String = "",
+    val customSystemPrompt: String? = null,
+    val messageCount: Int = 0,
+    val nodes: List<MessageNode>,
 )
