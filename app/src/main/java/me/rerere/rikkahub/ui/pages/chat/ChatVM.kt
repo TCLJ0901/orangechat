@@ -268,6 +268,9 @@ class ChatVM(
         }
     }
 
+
+    suspend fun exportContext(conversationId: Uuid, maxMessages: Int = 400): String =
+        conversationRepo.exportConversationContext(conversationId, maxMessages)
     fun updatePinnedStatus(conversation: Conversation) {
         viewModelScope.launch {
             conversationRepo.togglePinStatus(conversation.id)
