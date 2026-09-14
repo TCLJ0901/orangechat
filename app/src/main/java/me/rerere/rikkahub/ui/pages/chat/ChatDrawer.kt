@@ -7,6 +7,8 @@
 package me.rerere.rikkahub.ui.pages.chat
 
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -171,6 +173,27 @@ fun ChatDrawerContent(
     val folderSheetState = rememberModalBottomSheetState()
     var showCreateFolderDialog by remember { mutableStateOf(false) }
     var folderToRename by remember { mutableStateOf<Folder?>(null) }
+    // 换窗口: 导出上下文到 JSON 文件
+    var conversationToExportContext by remember { mutableStateOf<Conversation?>(null) }
+    val exportContextLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { targetUri ->
+            scope.launch {
+                runCatching {
+                    val conversation = conversationToExportContext ?: return@launch
+                    val json = vm.exportContext(conversation.id)
+                    context.contentResolver.openOutputStream(targetUri)?.use { os ->
+                        os.write(json.toByteArray())
+                    }
+                    toaster.show("上下文已导出（最近400条）", type = ToastType.Success)
+                }.onFailure { e ->
+                    toaster.show("导出失败: ${e.message}", type = ToastType.Error)
+                }
+            }
+        }
+    }
+
     var folderToDelete by remember { mutableStateOf<Folder?>(null) }
 
     // Menu popup 状态
@@ -322,6 +345,10 @@ fun ChatDrawerContent(
                     showMoveToFolderSheet = true
                 }
             )
+                onExportContext = {
+                    conversationToExportContext = it
+                    exportContextLauncher.launch("chuimou_context_${System.currentTimeMillis()}.json")
+                }
 
             // 助手选择器
             AssistantPicker(
