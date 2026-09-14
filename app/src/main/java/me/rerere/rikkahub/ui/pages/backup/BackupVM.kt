@@ -194,6 +194,10 @@ class BackupVM(
         s3Sync.restoreFromS3(config = settings.value.s3Config, item = item)
     }
 
+    suspend fun importContext(json: String): me.rerere.rikkahub.data.model.Conversation {
+        return conversationRepository.importConversationContext(json)
+    }
+
     suspend fun deleteS3BackupFile(item: S3BackupItem) {
         s3Sync.deleteS3BackupFile(settings.value.s3Config, item)
     }
