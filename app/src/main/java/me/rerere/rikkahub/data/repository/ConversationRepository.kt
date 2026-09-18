@@ -589,6 +589,8 @@ class ConversationRepository(
             }
         }
 
+        result.sortedBy { it.date }
+    }
     suspend fun exportConversationContext(conversationId: Uuid, maxMessages: Int = 400): String {
         val conversation = getConversationById(conversationId)
             ?: throw IllegalArgumentException("Conversation not found: $conversationId")
@@ -629,8 +631,6 @@ class ConversationRepository(
         )
         insertConversation(conversation)
         return conversation
-    }
-        result.sortedBy { it.date }
     }
 }
 
