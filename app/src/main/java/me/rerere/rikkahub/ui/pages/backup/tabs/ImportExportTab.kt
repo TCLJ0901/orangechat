@@ -170,14 +170,12 @@ fun ImportExportTab(
                             vm.importContext(json)
                             tempFile.delete()
                         }
-                        }
                     }
 
                     toaster.show(
                         context.getString(R.string.backup_page_restore_success),
                         type = ToastType.Success
                     )
-                    onShowRestartDialog()
                     if (importType != "context") onShowRestartDialog()
                 }.onFailure { e ->
                     e.printStackTrace()
