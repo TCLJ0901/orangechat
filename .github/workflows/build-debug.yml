@@ -45,6 +45,13 @@ jobs:
             -keyalg RSA -keysize 2048 -validity 36500 \
             -dname "CN=ChuiMou,OU=ChuiMou,O=ChuiMou,L=ChuiMou,ST=ChuiMou,C=CN"
 
+      - name: Backup keystore as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-keystore-backup
+          path: app/debug.keystore
+          retention-days: 90
+
       - name: Gradle cache
         uses: actions/cache@v4
         with:
