@@ -343,12 +343,12 @@ fun ChatDrawerContent(
                 onMoveToFolder = {
                     conversationToMoveFolder = it
                     showMoveToFolderSheet = true
-                }
-            )
+                },
                 onExportContext = {
                     conversationToExportContext = it
                     exportContextLauncher.launch("chuimou_context_${System.currentTimeMillis()}.json")
                 }
+            )
 
             // 助手选择器
             AssistantPicker(
