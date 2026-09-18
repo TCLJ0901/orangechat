@@ -691,3 +691,9 @@ data class ContextExportPayload(
     val messageCount: Int = 0,
     val nodes: List<MessageNode>,
 )
+
+/**
+ * 检查 UIMessage 是否包含 Base64 内联图片
+ */
+private fun UIMessage.hasBase64Part(): Boolean =
+    parts.any { it is UIMessagePart.Image && (it as UIMessagePart.Image).url.startsWith("data:") }
