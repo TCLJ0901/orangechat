@@ -58,6 +58,7 @@ sealed class SystemToolOption {
     @Serializable @SerialName("app_switch") data object AppSwitch : SystemToolOption()
     @Serializable @SerialName("app_lock") data object AppLock : SystemToolOption()
     @Serializable @SerialName("fingerprint") data object Fingerprint : SystemToolOption()
+    @Serializable @SerialName("send_image") data object SendImage : SystemToolOption()
 }
 
 class SystemTools(private val context: Context, private val settings: Settings) {
@@ -389,6 +390,7 @@ class SystemTools(private val context: Context, private val settings: Settings) 
     private val appSwitchTool by lazy { createAppSwitchTool(context) }
     private val appLockTool by lazy { createAppLockTool(context) }
     // 指纹验证: 共用 BiometricPromptActivity.buffer 单例, 保证工具与弹窗 Activity 同一个 buffer
+    private val sendImageTool by lazy { createSendImageTool(context) }
     private val fingerprintTool by lazy {
         me.rerere.rikkahub.data.ai.tools.local.fingerprintTool(
             context,
@@ -438,6 +440,7 @@ class SystemTools(private val context: Context, private val settings: Settings) 
         if (SystemToolOption.AppSwitch in enabledTools) tools.add(appSwitchTool)
         if (SystemToolOption.AppLock in enabledTools) tools.add(appLockTool)
         if (SystemToolOption.Fingerprint in enabledTools) tools.add(fingerprintTool)
+        if (SystemToolOption.SendImage in enabledTools) tools.add(sendImageTool)
         return tools
     }
 }
