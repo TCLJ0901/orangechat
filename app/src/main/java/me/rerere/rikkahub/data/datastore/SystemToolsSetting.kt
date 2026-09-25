@@ -91,7 +91,7 @@ data class SystemToolsSetting(
     val fingerprintEnabled: Boolean = false,
 
     // Send Image: allow AI to send local images inline in chat
-    val sendImageEnabled: Boolean = false,
+    val sendImageEnabled: Boolean = true,
 ) {
     fun getEnabledOptions(): Set<me.rerere.rikkahub.data.ai.tools.SystemToolOption> {
         val options = mutableSetOf<me.rerere.rikkahub.data.ai.tools.SystemToolOption>()
