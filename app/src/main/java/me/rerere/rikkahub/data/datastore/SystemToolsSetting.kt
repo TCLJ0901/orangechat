@@ -89,6 +89,9 @@ data class SystemToolsSetting(
 
     // Fingerprint: verify_fingerprint 工具, 弹出系统指纹/人脸验证框验证用户身份
     val fingerprintEnabled: Boolean = false,
+
+    // Send Image: allow AI to send local images inline in chat
+    val sendImageEnabled: Boolean = false,
 ) {
     fun getEnabledOptions(): Set<me.rerere.rikkahub.data.ai.tools.SystemToolOption> {
         val options = mutableSetOf<me.rerere.rikkahub.data.ai.tools.SystemToolOption>()
@@ -120,6 +123,7 @@ data class SystemToolsSetting(
         if (appSwitchEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.AppSwitch)
         if (appLockEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.AppLock)
         if (fingerprintEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.Fingerprint)
+        if (sendImageEnabled) options.add(me.rerere.rikkahub.data.ai.tools.SystemToolOption.SendImage)
         return options
     }
 }
