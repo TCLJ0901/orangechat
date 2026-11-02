@@ -107,7 +107,7 @@ fun SettingProactiveMessagePage(vm: SettingVM = koinInject()) {
                 CardGroup {
                     item(
                         headlineContent = { Text("启用主动消息") },
-                        supportingContent = { Text("开启后AI立即主动发一条消息，之后按设定间隔循环") },
+                        supportingContent = { Text("开启后AI立即主动发一条消息，之后由AI自主决定下次什么时候来找你") },
                         trailingContent = {
                             Switch(
                                 checked = settings.proactiveMessageSetting.enabled,
@@ -197,56 +197,6 @@ fun SettingProactiveMessagePage(vm: SettingVM = koinInject()) {
                             }
                         )
                     }
-                }
-            }
-            item {
-                CardGroup {
-                    item(
-                        headlineContent = { Text("最小间隔 (分钟)") },
-                        supportingContent = {
-                            OutlinedTextField(
-                                value = settings.proactiveMessageSetting.minIntervalMinutes.toString(),
-                                onValueChange = { value ->
-                                    val minutes = value.toIntOrNull()
-                                    if (minutes != null && minutes > 0) {
-                                        vm.updateSettings(
-                                            settings.copy(
-                                                proactiveMessageSetting = settings.proactiveMessageSetting.copy(
-                                                    minIntervalMinutes = minutes
-                                                )
-                                            )
-                                        )
-                                    }
-                                },
-                                placeholder = { Text("30") },
-                                singleLine = true,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        },
-                    )
-                    item(
-                        headlineContent = { Text("最大间隔 (分钟)") },
-                        supportingContent = {
-                            OutlinedTextField(
-                                value = settings.proactiveMessageSetting.maxIntervalMinutes.toString(),
-                                onValueChange = { value ->
-                                    val minutes = value.toIntOrNull()
-                                    if (minutes != null && minutes >= settings.proactiveMessageSetting.minIntervalMinutes) {
-                                        vm.updateSettings(
-                                            settings.copy(
-                                                proactiveMessageSetting = settings.proactiveMessageSetting.copy(
-                                                    maxIntervalMinutes = minutes
-                                                )
-                                            )
-                                        )
-                                    }
-                                },
-                                placeholder = { Text("90") },
-                                singleLine = true,
-                                modifier = Modifier.padding(top = 8.dp),
-                            )
-                        },
-                    )
                 }
             }
             // 激进模式开关（与主动消息互斥）
@@ -389,7 +339,7 @@ fun SettingProactiveMessagePage(vm: SettingVM = koinInject()) {
                     item(
                         headlineContent = { Text("说明") },
                         supportingContent = {
-                            Text("启用后，AI 会在设定的最小和最大间隔之间随机一个时间点主动给你发消息。你回复后计时器重置，重新开始随机计时；不回复则继续循环发消息。AI 可以自己思考选择要不要回复，如果觉得没什么好说的可以跳过。\n\n提示：同时使用 AlarmManager + WorkManager 双重调度，确保消息能准时触发。\n\n强制跳转：开启后 AI 会自行判断是否需要拉起屏幕。")
+                            Text("启用后，AI 会自主决定什么时候来找你。每次醒来后 AI 根据当前状态（你在不在、几点了、有没有想说的话）决定下次什么时候再来。你回复后 AI 也会重新判断下次时间。\n\n提示：同时使用 AlarmManager + WorkManager 双重调度，确保消息能准时触发。\n\n强制跳转：开启后 AI 会自行判断是否需要拉起屏幕。")
                         },
                     )
                 }
